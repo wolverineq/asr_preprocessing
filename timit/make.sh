@@ -6,29 +6,29 @@ echo '----------------------------------------------------'
 RUN_ROOT_PATH=`pwd`
 
 # Set the root path to TIMIT corpus
-TIMIT_PATH='/n/sd8/inaguma/corpus/timit/original/'
+TIMIT_PATH='/home/huanglu/data/timit'
 
 # Set the path to save dataset
-DATASET_SAVE_PATH='/n/sd8/inaguma/corpus/timit/dataset/'
+DATASET_SAVE_PATH='/home/huanglu/asr/end2end/data/timit/dataset'
 
 # Set the path to save input features (fbank or MFCC)
-INPUT_FEATURE_SAVE_PATH='/n/sd8/inaguma/corpus/timit/fbank/'
+INPUT_FEATURE_SAVE_PATH='/home/huanglu/asr/end2end/data/timit/fbank/'
 
 
 echo '--------------------------------'
 echo '|      Feature extraction       |'
 echo '--------------------------------'
 # Set the path to HTK
-HTK_PATH='/misc/local/htk-3.4/bin/HCopy'
+HTK_PATH='/home/huanglu/asr/end2end/tools/htk/HTKTools/HCopy'
 
 # Make a mapping file from wav to htk
-python make_scp.py $TIMIT_PATH $INPUT_FEATURE_SAVE_PATH $RUN_ROOT_PATH
-CONFIG_PATH="./config/config_fbank"
+#python make_scp.py $TIMIT_PATH $INPUT_FEATURE_SAVE_PATH $RUN_ROOT_PATH
+#CONFIG_PATH="./config/config_fbank"
 
 # Convert from wav to htk files
-$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_train.scp
-$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_dev.scp
-$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_test.scp
+#$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_train.scp
+#$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_dev.scp
+#$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_test.scp
 
 
 echo '--------------------------------'
@@ -42,7 +42,7 @@ echo '--------------------------------'
 echo '|             CTC               |'
 echo '--------------------------------'
 # Make transcripts for CTC model
-python make_label_ctc.py $TIMIT_PATH $DATASET_SAVE_PATH $RUN_ROOT_PATH
+#python make_label_ctc.py $TIMIT_PATH $DATASET_SAVE_PATH $RUN_ROOT_PATH
 
 
 echo '--------------------------------'

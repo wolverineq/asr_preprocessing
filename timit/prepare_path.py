@@ -189,7 +189,7 @@ class Prepare(object):
 
 if __name__ == '__main__':
 
-    data_path = '/n/sd8/inaguma/corpus/timit/original/'
+    data_path = '/home/huanglu/timit/'
 
     prep = Prepare(data_path, abspath('./'))
 
