@@ -22,13 +22,13 @@ echo '--------------------------------'
 HTK_PATH='/home/huanglu/asr/end2end/tools/htk/HTKTools/HCopy'
 
 # Make a mapping file from wav to htk
-#python make_scp.py $TIMIT_PATH $INPUT_FEATURE_SAVE_PATH $RUN_ROOT_PATH
-#CONFIG_PATH="./config/config_fbank"
+python make_scp.py $TIMIT_PATH $INPUT_FEATURE_SAVE_PATH $RUN_ROOT_PATH
+CONFIG_PATH="./config/config_fbank"
 
 # Convert from wav to htk files
-#$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_train.scp
-#$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_dev.scp
-#$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_test.scp
+$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_train.scp
+$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_dev.scp
+$HTK_PATH -T 1 -C $CONFIG_PATH -S config/wav2fbank_test.scp
 
 
 echo '--------------------------------'
@@ -42,7 +42,7 @@ echo '--------------------------------'
 echo '|             CTC               |'
 echo '--------------------------------'
 # Make transcripts for CTC model
-#python make_label_ctc.py $TIMIT_PATH $DATASET_SAVE_PATH $RUN_ROOT_PATH
+python make_label_ctc.py $TIMIT_PATH $DATASET_SAVE_PATH $RUN_ROOT_PATH
 
 
 echo '--------------------------------'
