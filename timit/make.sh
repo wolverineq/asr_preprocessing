@@ -1,8 +1,8 @@
 #!/bin/bash
 
 ### Set paths
-TIMIT_PATH='/n/sd8/inaguma/corpus/timit/original'
-DATASET_SAVE_PATH='/n/sd8/inaguma/corpus/timit/dataset'
+TIMIT_PATH='/mnt/b/huanglu/data/timit/'
+DATASET_SAVE_PATH='/mnt/b/huanglu/asr/end2end/data/timit/dataset'
 
 ### Select one tool to extract features (HTK is the fastest)
 TOOL='htk'
@@ -42,11 +42,11 @@ echo ===========================================================================
 echo "                           Feature extraction                             "
 echo ============================================================================
 
-HTK_SAVE_PATH='/n/sd8/inaguma/corpus/timit/htk'
+HTK_SAVE_PATH='/mnt/b/huanglu/asr/end2end/data/timit/htk'
 
 if [ $TOOL = 'htk' ]; then
   # Set the path to HTK (optional, set only when using HTK toolkit)
-  HTK_PATH='/home/lab5/inaguma/htk-3.4/bin/HCopy'
+  HTK_PATH='/mnt/b/huanglu/asr/end2end/tools/htk/HTKTools/HCopy'
   CONFIG_PATH="./config/config_file"
 
   # Make a config file to covert from wav to htk file
