@@ -7,12 +7,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import sys
 from os.path import join, basename, splitext, abspath
 from glob import glob
-
-sys.path.append('../')
-from utils.util import mkdir
 
 
 class Prepare(object):
@@ -133,7 +129,7 @@ class Prepare(object):
     def wav(self, data_type):
         """Get paths to wav files.
         Args:
-            data_type: train or dev or test
+            data_type (string): train or dev or test
         Returns:
             paths to wav files
         """
@@ -147,7 +143,7 @@ class Prepare(object):
     def text(self, data_type):
         """Get paths to sentence-level transcription files.
         Args:
-            data_type: string, train or dev or test
+            data_type (string): train or dev or test
         Returns:
             paths to transcription files
         """
@@ -161,7 +157,7 @@ class Prepare(object):
     def word(self, data_type):
         """Get paths to word-level transcription files.
         Args:
-            data_type: string, train or dev or test
+            data_type (string): train or dev or test
         Returns:
             paths to transcription files
         """
@@ -175,7 +171,7 @@ class Prepare(object):
     def phone(self, data_type):
         """Get paths to phone-level transcription files.
         Args:
-            data_type: string, train or dev or test
+            data_type (string): train or dev or test
         Returns:
             paths to transcription files
         """
