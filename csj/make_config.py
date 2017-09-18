@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Make configuration file for HTK toolkit (TIMIT corpus)."""
 
+"""Make configuration file for HTK toolkit (CSJ corpus)."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -13,7 +13,7 @@ from os.path import join, basename
 import argparse
 
 sys.path.append('../')
-from timit.prepare_path import Prepare
+from csj.prepare_path import Prepare
 from utils.util import mkdir_join, mkdir
 from utils.inputs.htk import save
 
@@ -42,7 +42,7 @@ def main():
     prep = Prepare(args.data_path, args.run_root_path)
 
     # HTK settings
-    save(audio_file_type='nist',
+    save(audio_file_type='wav',
          feature_type=args.feature_type,
          channels=args.channels,
          config_path=args.config_path,
@@ -54,16 +54,26 @@ def main():
          deltadelta=args.deltadelta)
     # NOTE: 120-dim features are extracted by default
 
-    for data_type in ['train', 'dev', 'test']:
+    file_number = {
+        'train_subset': 986,
+        'train_fullset': 3212,
+        'dev': 19,
+        'eval1': 10,
+        'eval2': 10,
+        'eval3': 10
+    }
+
+    for data_type in ['train_subset', 'train_fullset', 'dev', 'eval1', 'eval2', 'eval3']:
 
         wav_paths = prep.wav(data_type=data_type)
         save_path = mkdir_join(htk_save_path, data_type)
 
+        assert len(wav_paths) == file_number[data_type], 'File number is not correct (True: %d, Now: %d).'.format(
+            file_number[data_type], len(wav_paths))
         with open(join(args.run_root_path, 'config/wav2fbank_' + data_type + '.scp'), 'w') as f:
             for wav_path in wav_paths:
-                speaker = wav_path.split('/')[-2]
-                wav_index = basename(wav_path).split('.')[0]
-                save_path_tmp = mkdir_join(save_path, speaker, wav_index + '.htk')
+                speaker_name = basename(wav_path).split('.')[0]
+                save_path_tmp = join(save_path, speaker_name + '.htk')
                 f.write(wav_path + '  ' + save_path_tmp + '\n')
 
 
