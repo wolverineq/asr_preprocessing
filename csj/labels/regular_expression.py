@@ -11,30 +11,27 @@ import re
 
 
 def remove_pause(kana_seq):
-
-    # 0.2 秒以上のポーズ
+    # 200ms以上のポーズ
     expr = r'(.*)<P:\d{5}\.\d{3}-\d{5}\.\d{3}>(.*)'
     pause = re.match(expr, kana_seq)
     while pause is not None:
-        # NOTE: 空白は入れない（言語的な情報が減るため）
         kana_seq = pause.group(1) + pause.group(2)
         pause = re.match(expr, kana_seq)
     return kana_seq
 
 
 def remove_question_which(kana_seq):
-
     expr = r'(.*)\(\?[\s]+([^()]+),([^()]+)\)(.*)'
     qw = re.match(expr, kana_seq)
     while qw is not None:
-        # NOTE: Select latter
-        kana_seq = qw.group(1) + qw.group(3) + qw.group(4)
+        # NOTE: Select the former
+        kana_seq = qw.group(1) + qw.group(2) + qw.group(4)
+        # kana_seq = qw.group(1) + qw.group(3) + qw.group(4)
         qw = re.match(expr, kana_seq)
     return kana_seq
 
 
 def remove_question(kana_seq):
-
     # 聞き取りや語彙の判断に自信がない場合
     expr = r'(.*)\(\?[\s]+([^,()]+)\)(.*)'
     question = re.match(expr, kana_seq)
@@ -45,19 +42,20 @@ def remove_question(kana_seq):
 
 
 def remove_Btag(kana_seq):
-
     # 語の読みに関する知識レベルの言い間違い
     expr = r'(.*)\(B[\s]+([^()]+);([^()]+)\)(.*)'
     Btag = re.match(expr, kana_seq)
     while Btag is not None:
-        # NOTE: Select latter
-        kana_seq = Btag.group(1) + Btag.group(3) + Btag.group(4)
+        # NOTE: Select the former
+        # 前者：実際の発音
+        # 後者：本来の発音
+        kana_seq = Btag.group(1) + Btag.group(2) + Btag.group(4)
+        # kana_seq = Btag.group(1) + Btag.group(3) + Btag.group(4)
         Btag = re.match(expr, kana_seq)
     return kana_seq
 
 
 def remove_disfluency(kana_seq):
-
     # D:言い直し,言い淀み等による語断片
     # D2:助詞,助動詞,接辞の言い直し
     expr = r'(.*)\(D[\d]*[\s]+([^()]+)\)(.*)'
@@ -70,7 +68,6 @@ def remove_disfluency(kana_seq):
 
 
 def remove_filler(kana_seq):
-
     # フィラー,感情表出系感動詞
     expr = r'(.*)\(F[\s]+([^()]+)\)(.*)'
     filler = re.match(expr, kana_seq)
@@ -81,7 +78,6 @@ def remove_filler(kana_seq):
 
 
 def remove_Xtag(kana_seq):
-
     # 非朗読対象発話 ( 朗読における言い間違い等 )
     expr = r'(.*)\(X[\s]+([^()]+)\)(.*)'
     Xtag = re.match(expr, kana_seq)
@@ -92,18 +88,18 @@ def remove_Xtag(kana_seq):
 
 
 def remove_Atag(kana_seq):
-
     # アルファベットや算用数字,記号の表記
     expr = r'(.*)\(A[\s]+([^()]+);([^()]+)\)(.*)'
     Atag = re.match(expr, kana_seq)
     while Atag is not None:
-        kana_seq = Atag.group(1) + Atag.group(3) + Atag.group(4)
+        # NOTE: Select the former
+        kana_seq = Atag.group(1) + Atag.group(2) + Atag.group(4)
+        # kana_seq = Atag.group(1) + Atag.group(3) + Atag.group(4)
         Atag = re.match(expr, kana_seq)
     return kana_seq
 
 
 def remove_Ktag(kana_seq):
-
     expr = r'(.*)\(K[\s]+([^()]+);([^()]+)\)(.*)'
     Ktag = re.match(expr, kana_seq)
     while Ktag is not None:
@@ -113,7 +109,6 @@ def remove_Ktag(kana_seq):
 
 
 def remove_cry(kana_seq):
-
     # 泣きながら発話
     expr = r'(.*)\(泣[\s]+([^()]+)\)(.*)'
     cry = re.match(expr, kana_seq)
@@ -124,7 +119,6 @@ def remove_cry(kana_seq):
 
 
 def remove_cough(kana_seq):
-
     # 咳をしながら発話
     expr = r'(.*)\(咳[\s]+([^()]+)\)(.*)'
     cough = re.match(expr, kana_seq)
@@ -135,19 +129,22 @@ def remove_cough(kana_seq):
 
 
 def remove_which(kana_seq):
-
     # 転訛,発音の怠けなど ,一時的な発音エラー
     expr = r'(.*)\(W[\s]+([^()]+);([^()]+)\)(.*)'
     which = re.match(expr, kana_seq)
     while which is not None:
-        # NOTE: Select latter
-        kana_seq = which.group(1) + which.group(3) + which.group(4)
+        # NOTE: Select the former
+        # 前者：実際の発音
+        # 後者：本来の発音
+        if which.group(2) not in ['?', '<>']:
+            kana_seq = which.group(1) + which.group(2) + which.group(4)
+        else:
+            kana_seq = which.group(1) + which.group(3) + which.group(4)
         which = re.match(expr, kana_seq)
     return kana_seq
 
 
 def remove_which_Ltag(kana_seq):
-
     expr = r'(.*)\(W[\s]+([^()]*)\(L[\s]+([^()]+);([^()]+)\)\)(.*)'
     which_Ltag = re.match(expr, kana_seq)
     while which_Ltag is not None:
@@ -158,7 +155,6 @@ def remove_which_Ltag(kana_seq):
 
 
 def remove_which_laughing(kana_seq):
-
     expr = r'(.*)\(W[\s]+([^()]*)\(笑[\s]+([^()]+);([^()]+)\)\)(.*)'
     which_laughing = re.match(expr, kana_seq)
     while which_laughing is not None:
@@ -169,7 +165,6 @@ def remove_which_laughing(kana_seq):
 
 
 def remove_Ltag(kana_seq):
-
     # ささやき声や独り言などの小さな声
     expr = r'(.*)\(L[\s]+([^()]+)\)(.*)'
     Ltag = re.match(expr, kana_seq)
@@ -180,7 +175,6 @@ def remove_Ltag(kana_seq):
 
 
 def remove_laughing(kana_seq):
-
     # 発話笑い
     expr = r'(.*)\(笑[\s]+([^()]+)\)(.*)'
     laughing = re.match(expr, kana_seq)
@@ -191,7 +185,6 @@ def remove_laughing(kana_seq):
 
 
 def remove_Otag(kana_seq):
-
     # 外国語や古語,方言など
     expr = r'(.*)\(O[\s]+([^()]+)\)(.*)'
     Otag = re.match(expr, kana_seq)
@@ -202,7 +195,6 @@ def remove_Otag(kana_seq):
 
 
 def remove_Mtag(kana_seq):
-
     # 音や言葉に関するメタ的な引用
     expr = r'(.*)\(M[\s]+([^()]+)\)(.*)'
     Mtag = re.match(expr, kana_seq)

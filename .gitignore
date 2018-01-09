@@ -4,21 +4,18 @@ __pychache__
 *.log
 *.pyc
 *.scp
+.nfs*
+nohup.out
+word*.txt
+trans*.txt
 
 # tools
 sph2pipe_v2.5
 
-# csj
-*_ss.py
-*_dialog.py
-*_ss.sh
-*_dialog.sh
-*_ss.txt
-make_wav.py
-split.py
+# Librispeech
+librispeech/phone.py
+librispeech/test/test_label_phone.py
 
-# librispeech
-word2num*.txt
-
-svc
-# erato
+# CSJ
+*dialog*
+*_ss*

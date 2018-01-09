@@ -6,6 +6,7 @@ from __future__ import division
 from __future__ import print_function
 
 import re
+
 from csj.labels.regular_expression import remove_pause
 from csj.labels.regular_expression import remove_question_which
 from csj.labels.regular_expression import remove_question
@@ -23,29 +24,28 @@ from csj.labels.regular_expression import remove_laughing
 from csj.labels.regular_expression import remove_Otag
 from csj.labels.regular_expression import remove_Mtag
 
+NOISE = 'NZ'
+NOISES = ['<雑音>', '<笑>', '<息>', '<咳>', '<泣>', '<拍手>', '<フロア発話>',
+          '<フロア笑>', '<ベル>', '<デモ>']
+
 
 def fix_transcript(kana_seq):
+
+    # Ignore utterances (R ×××...)
     if 'R' in kana_seq or '×' in kana_seq:
         return ''
 
-    # Replace to Noise
-    kana_seq = re.sub(r'<雑音>', 'NZ', kana_seq)
-    kana_seq = re.sub(r'<笑>', 'NZ', kana_seq)
-    kana_seq = re.sub(r'<息>', 'NZ', kana_seq)
-    kana_seq = re.sub(r'<咳>', 'NZ', kana_seq)
-    kana_seq = re.sub(r'<泣>', 'NZ', kana_seq)
-    kana_seq = re.sub(r'<拍手>', 'NZ', kana_seq)
-    kana_seq = re.sub(r'<フロア発話>', 'NZ', kana_seq)
-    kana_seq = re.sub(r'<フロア笑>', 'NZ', kana_seq)
-    kana_seq = re.sub(r'<ベル>', 'NZ', kana_seq)
-    kana_seq = re.sub(r'<デモ>', 'NZ', kana_seq)
+    # Replace noises to a single class
+    for noise in NOISES:
+        kana_seq = kana_seq.replace(noise, NOISE)
 
     # Remove
     kana_seq = re.sub(r'<朗読間違い>', '', kana_seq)
 
-    # Convert (?) => ?, <FV> => V
+    # Convert (?) -> ?, <FV> -> <>
     kana_seq = re.sub(r'\(\?\)', '?', kana_seq)
     kana_seq = re.sub(r'<FV>', '<>', kana_seq)  # vocal fly
+    # NOTE: 先に完全に消すわけにはいかない
 
     # Decompose hierarchical structure
     for _ in range(kana_seq.count('(') + kana_seq.count('<')):
@@ -68,14 +68,24 @@ def fix_transcript(kana_seq):
         kana_seq = remove_Otag(kana_seq)
         kana_seq = remove_Xtag(kana_seq)
 
+    # Convert number to kanji character
+    # kana_seq = kana_seq.replace('１', '一')
+    # kana_seq = kana_seq.replace('２', '二')
+    # kana_seq = kana_seq.replace('３', '三')
+    # kana_seq = kana_seq.replace('４', '四')
+    # kana_seq = kana_seq.replace('５', '五')
+    # kana_seq = kana_seq.replace('６', '六')
+    # kana_seq = kana_seq.replace('７', '七')
+    # kana_seq = kana_seq.replace('８', '八')
+    # kana_seq = kana_seq.replace('９', '九')
+    # kana_seq = kana_seq.replace('０', '零')
+    # \十,\百,\千
+
     # Remove
     kana_seq = re.sub(r'<H>', '', kana_seq)  # extended voise
     kana_seq = re.sub(r'<Q>', '', kana_seq)  # exytended voise
-    kana_seq = re.sub(r'\?', '', kana_seq)
-    kana_seq = re.sub(r'<>', '', kana_seq)
-
-    # Convert space to underbar
-    kana_seq = re.sub(r'\s', '_', kana_seq)
+    kana_seq = re.sub(r'\?', '', kana_seq)  # (?)
+    kana_seq = re.sub(r'<>', '', kana_seq)  # <FV>
 
     return kana_seq
 

@@ -1,85 +1,88 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""Test for input data (TIMIT corpus)."""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from os.path import join, abspath
 import sys
-from glob import glob
 import unittest
 
 sys.path.append('../../')
-from timit.prepare_path import Prepare
-from timit.inputs.input_data import read_audio
+from timit.path import Path
+from timit.input_data import read_audio
+from utils.measure_time_func import measure_time
+
+path = Path(data_path='/n/sd8/inaguma/corpus/timit/data',
+            config_path='../config',
+            htk_save_path='/n/sd8/inaguma/corpus/timit/htk')
+
+htk_paths = {
+    'train': path.htk(data_type='train'),
+    'dev': path.htk(data_type='dev'),
+    'test': path.htk(data_type='test')
+}
+
+wav_paths = {
+    'train': path.wav(data_type='train'),
+    'dev': path.wav(data_type='dev'),
+    'test': path.wav(data_type='test')
+}
+
+CONFIG = {
+    'feature_type': 'logmelfbank',
+    'channels': 40,
+    'sampling_rate': 8000,
+    'window': 0.025,
+    'slide': 0.01,
+    'energy': False,
+    'delta': True,
+    'deltadelta': True
+}
 
 
-class TestInputNorm(unittest.TestCase):
+class TestInput(unittest.TestCase):
 
     def test(self):
 
-        self.config = {
-            'feature_type': 'logmelfbank',
-            'channels': 40,
-            'sampling_rate': 8000,
-            'window': 0.025,
-            'slide': 0.01,
-            'energy': True,
-            'delta': True,
-            'deltadelta': True
-        }
-
-        self.check_feature_extraction(tool='htk', normalize='global')
-        self.check_feature_extraction(tool='htk', normalize='speaker')
-        self.check_feature_extraction(tool='htk', normalize='utterance')
+        self.check(tool='htk', normalize='global')
+        self.check(tool='htk', normalize='speaker')
+        self.check(tool='htk', normalize='utterance')
 
         # NOTE: these are very slow
-        self.check_feature_extraction(tool='python_speech_features', normalize='global')
-        self.check_feature_extraction(tool='python_speech_features', normalize='speaker')
-        self.check_feature_extraction(tool='python_speech_features', normalize='utterance')
+        self.check(tool='python_speech_features', normalize='global')
+        self.check(tool='python_speech_features', normalize='speaker')
+        self.check(tool='python_speech_features', normalize='utterance')
 
-        self.check_feature_extraction(tool='librosa', normalize='global')
-        self.check_feature_extraction(tool='librosa', normalize='speaker')
-        self.check_feature_extraction(tool='librosa', normalize='utterance')
+        self.check(tool='librosa', normalize='global')
+        self.check(tool='librosa', normalize='speaker')
+        self.check(tool='librosa', normalize='utterance')
 
-    def check_feature_extraction(self, tool, normalize):
+    @measure_time
+    def check(self, tool, normalize):
 
         print('==================================================')
         print('  tool: %s' % tool)
         print('  normalize: %s' % normalize)
         print('==================================================')
 
-        htk_save_path = '/n/sd8/inaguma/corpus/timit/htk'
-        prep = Prepare('/n/sd8/inaguma/corpus/timit/original', abspath('../'))
-
-        if tool == 'htk':
-            wav_paths = {
-                'train': [path for path in glob(join(htk_save_path, 'train/*/*.htk'))],
-                'dev': [path for path in glob(join(htk_save_path, 'dev/*/*.htk'))],
-                'test': [path for path in glob(join(htk_save_path, 'test/*/*.htk'))]
-            }
-            # NOTE: these are htk file paths
-        else:
-            wav_paths = {
-                'train': prep.wav(data_type='train'),
-                'dev': prep.wav(data_type='dev'),
-                'test': prep.wav(data_type='test')
-            }
+        audio_paths = htk_paths if tool == 'htk' else wav_paths
 
         print('---------- train ----------')
         train_global_mean_male, train_global_std_male, train_global_mean_female, train_global_std_female = read_audio(
-            audio_paths=wav_paths['train'],
+            audio_paths=audio_paths['train'],
             tool=tool,
-            config=self.config,
+            config=CONFIG,
             normalize=normalize,
             is_training=True)
 
         for data_type in ['dev', 'test']:
             print('---------- %s ----------' % data_type)
-            read_audio(audio_paths=wav_paths[data_type],
+            read_audio(audio_paths=audio_paths[data_type],
                        tool=tool,
-                       config=self.config,
+                       config=CONFIG,
                        normalize=normalize,
                        is_training=False,
                        train_global_mean_male=train_global_mean_male,
