@@ -1,52 +1,28 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
-import numpy as np
-
-
-class Word2idx(object):
-    """Convert from word to index.
+def word2num(word_list, map_file_path):
+    """Convert from word to number.
     Args:
-        vocab_file_path (string): path to the vocablary file
-        space_mark (string, optional): the space mark to divide a sequence into words
+        word_list: list of words (string)
+        map_file_path: path to the mapping file
+    Returns:
+        word_list: list of word indices (int)
     """
+    # read the mapping file
+    map_dict = {}
+    with open(map_file_path, 'r') as f:
+        for line in f:
+            line = line.strip().split('  ')
+            map_dict[str(line[0])] = int(line[1])
 
-    def __init__(self, vocab_file_path, space_mark='_'):
-        self.space_mark = space_mark
+    # convert from word to number
+    for i in range(len(word_list)):
+        if word_list[i] in map_dict.keys():
+            word_list[i] = map_dict[word_list[i]]
+        else:
+            # Pad by UNK
+            word_list[i] = len(map_dict.keys())
 
-        # Read the vocablary file
-        self.map_dict = {}
-        vocab_count = 0
-        with open(vocab_file_path, 'r') as f:
-            for line in f:
-                word = line.strip()
-                self.map_dict[word] = vocab_count
-                vocab_count += 1
-
-        # Add <SOS> & <EOS>
-        self.map_dict['<'] = vocab_count
-        self.map_dict['>'] = vocab_count + 1
-
-    def __call__(self, str_word):
-        """Convert from word to index.
-        Args:
-            str_word (string): a sequence of words
-        Returns:
-            index_list (np.ndarray): word indices
-        """
-        word_list = str_word.split(self.space_mark)
-        index_list = []
-
-        # Convert from word to index
-        for word in word_list:
-            if word in self.map_dict.keys():
-                index_list.append(self.map_dict[word])
-            else:
-                # Replace with <UNK>
-                index_list.append(self.map_dict['OOV'])
-
-        return np.array(index_list)
+    return word_list

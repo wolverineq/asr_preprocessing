@@ -35,7 +35,7 @@ def wav2feature(wav_path, feature_type='logfbank', feature_dim=40,
         feature_type = 'logfbank'
     if feature_type not in ['logfbank', 'fbank', 'mfcc']:
         raise ValueError('feature_type is or "logfbank" or "fbank" or "mfcc".')
-    if use_delta2:
+    if use_delta2 and not use_delta1:
         delta1 = True
 
     # Read wav file
@@ -54,37 +54,42 @@ def wav2feature(wav_path, feature_type='logfbank', feature_dim=40,
         y, sr = librosa.load(wav_path_tmp)
         subprocess.call(['rm', wav_path_tmp])
 
+    if use_energy:
+        feature_dim + 1
+    if use_delta2:
+        feature_dim *= 3
+    elif delta1:
+        feature_dim *= 2
+
     if feature_type == 'mfcc':
         feat = librosa.feature.mfcc(y=y,
                                     sr=sr,
                                     # S=None,
                                     n_mfcc=feature_dim)
+
         if use_energy:
-            rmse = librosa.feature.rmse(y=y,
-                                        frame_length=2048,
-                                        hop_length=512)[0]
-            feat = np.concatenate((feat, rmse), axis=0)
+            pass
+            # energy_feat =
+            # feat = np.c_[feat, energy_feat]
+            # TODO: add energy
     else:
         feat = librosa.feature.melspectrogram(y=y,
                                               sr=sr,
                                               S=None,
                                               n_fft=2048,
                                               hop_length=512,
-                                              #   power=2.0,  # default is 2
+                                              power=2.0,
                                               n_mels=feature_dim,
                                               fmin=0,
                                               fmax=None)
-        # NOTE: feat: `[feature_dim, T]`
 
         if feature_type == 'logfbank':
-            # feat = librosa.core.logamplitude(feat)
-            feat = librosa.core.spectrum.power_to_db(feat)
+            feat = np.log(feat)
         if use_energy:
-            rmse = librosa.feature.rmse(y=y,
-                                        frame_length=2048,
-                                        hop_length=512)
-            # NOTE: `[1, T]`
-            feat = np.concatenate((feat, rmse), axis=0)
+            pass
+            # energy_feat =
+            # feat = np.c_[feat, energy_feat]
+            # TODO: add energy
 
     # Convert to time-major
     feat = feat.transpose((1, 0))
@@ -92,9 +97,9 @@ def wav2feature(wav_path, feature_type='logfbank', feature_dim=40,
     if use_delta2:
         delta1_feat = librosa.feature.delta(feat, width=9)
         delta2_feat = librosa.feature.delta(delta1_feat, width=9)
-        feat = np.concatenate((feat, delta1_feat, delta2_feat), axis=1)
+        feat = np.c_[feat, delta1_feat, delta2_feat]
     elif delta1:
         delta1_feat = librosa.feature.delta(feat, width=9)
-        feat = np.concatenate((feat, delta1_feat), axis=1)
+        feat = np.c_[feat, delta1_feat]
 
     return feat

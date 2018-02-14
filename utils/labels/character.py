@@ -1,97 +1,115 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
-import numpy as np
-
-
-class Char2idx(object):
-    """Convert from character to index.
+def char2num(str_char, map_file_path, double_letter=False):
+    """Convert from character to number.
     Args:
-        vocab_file_path (string): path to the vocabulary file
-        space_mark (string, optional): the space mark to divide a sequence into words
-        capital_divide (bool, optional): if True, words will be divided by
-            capital letters. This is used for English.
-        double_letter (bool, optional): if True, group repeated letters.
-            This is used for Japanese.
-        remove_list (list, optional): characters to neglect
+        str_char: string of characters
+        map_file_path: path to the mapping file
+        double_letter: if True, group repeated letters
+    Returns:
+        char_list: list of character indices
     """
+    char_list = list(str_char)
 
-    def __init__(self, vocab_file_path, space_mark='_', capital_divide=False,
-                 double_letter=False, remove_list=[]):
-        self.space_mark = space_mark
-        self.capital_divide = capital_divide
-        self.double_letter = double_letter
-        self.remove_list = remove_list
+    # Lead the mapping file
+    map_dict = {}
+    with open(map_file_path, 'r') as f:
+        for line in f:
+            line = line.strip().split()
+            map_dict[line[0]] = int(line[1])
 
-        # Read the vocabulary file
-        self.map_dict = {}
-        vocab_count = 0
-        with open(vocab_file_path, 'r') as f:
-            for line in f:
-                char = line.strip()
-                if char in remove_list:
-                    continue
-                self.map_dict[char] = vocab_count
-                vocab_count += 1
-
-        # Add <SOS> & <EOS>
-        self.map_dict['<'] = vocab_count
-        self.map_dict['>'] = vocab_count + 1
-
-    def __call__(self, str_char):
-        """
-        Args:
-            str_char (string): a sequence of characters
-        Returns:
-            index_list (list): character indices
-        """
-        index_list = []
-
-        # Convert from character to index
-        if self.capital_divide:
-            for word in str_char.split(self.space_mark):
-                # Replace the first character with the capital letter
-                index_list.append(self.map_dict[word[0].upper()])
-
-                # Check double-letters
+    # Convert from character to number
+    if double_letter:
+        skip_flag = False
+        for i in range(len(char_list) - 1):
+            if skip_flag:
+                char_list[i] = ''
                 skip_flag = False
-                for i in range(1, len(word) - 1, 1):
-                    if skip_flag:
-                        skip_flag = False
-                        continue
+                continue
 
-                    if not skip_flag and word[i:i + 2] in self.map_dict.keys():
-                        index_list.append(self.map_dict[word[i:i + 2]])
-                        skip_flag = True
-                    else:
-                        index_list.append(self.map_dict[word[i]])
+            if char_list[i] + char_list[i + 1] in map_dict.keys():
+                char_list[i] = map_dict[char_list[i] + char_list[i + 1]]
+                skip_flag = True
+            else:
+                char_list[i] = map_dict[char_list[i]]
 
-                # Final character
-                if not skip_flag:
-                    index_list.append(self.map_dict[word[-1]])
-
-        elif self.double_letter:
-            skip_flag = False
-            for i in range(len(str_char) - 1):
-                if skip_flag:
-                    skip_flag = False
-                    continue
-
-                if not skip_flag and str_char[i:i + 2] in self.map_dict.keys():
-                    index_list.append(self.map_dict[str_char[i:i + 2]])
-                    skip_flag = True
-                else:
-                    index_list.append(self.map_dict[str_char[i]])
-
-            # Final character
-            if not skip_flag:
-                index_list.append(self.map_dict[str_char[-1]])
-
+        # Final character
+        if skip_flag:
+            char_list[-1] = ''
         else:
-            index_list = list(map(lambda x: self.map_dict[x], list(str_char)))
+            char_list[-1] = map_dict[char_list[-1]]
 
-        return np.array(index_list)
+        # Remove skipped characters
+        while '' in char_list:
+            char_list.remove('')
+    else:
+        for i in range(len(char_list)):
+            char_list[i] = map_dict[char_list[i]]
+    return char_list
+
+
+def kana2num(str_char, map_file_path):
+    """Convert from kana character to number.
+    Args:
+        str_char: string of kana characters
+        map_file_path: path to the mapping file
+    Returns:
+        num_list: list of kana character indices
+    """
+    kana_list = list(str_char)
+    num_list = []
+
+    # Lead the mapping file
+    map_dict = {}
+    with open(map_file_path, 'r') as f:
+        for line in f:
+            line = line.strip().split()
+            map_dict[line[0]] = int(line[1])
+
+    i = 0
+    while i < len(kana_list):
+        # Check whether next kana character is a double consonant
+        if i != len(kana_list) - 1:
+            if kana_list[i] + kana_list[i + 1] in map_dict.keys():
+                num_list.append(int(map_dict[kana_list[i] + kana_list[i + 1]]))
+                i += 1
+            elif kana_list[i] in map_dict.keys():
+                num_list.append(int(map_dict[kana_list[i]]))
+            else:
+                raise ValueError(
+                    'There are no kana character such as %s' % kana_list[i])
+        else:
+            if kana_list[i] in map_dict.keys():
+                num_list.append(int(map_dict[kana_list[i]]))
+            else:
+                raise ValueError(
+                    'There are no kana character such as %s' % kana_list[i])
+        i += 1
+
+    return num_list
+
+
+def num2char(num_list, map_file_path):
+    """Convert from number to character.
+    Args:
+        num_list: list of character indices
+        map_file_path: path to the mapping file
+    Returns:
+        str_char: string of characters
+    """
+    # Lead the mapping file
+    map_dict = {}
+    with open(map_file_path, 'r') as f:
+        for line in f:
+            line = line.strip().split()
+            map_dict[int(line[1])] = line[0]
+
+    # Convert from indices to the corresponding characters
+    char_list = []
+    for i in range(len(num_list)):
+        char_list.append(map_dict[num_list[i]])
+
+    str_char = ''.join(char_list)
+    return str_char
